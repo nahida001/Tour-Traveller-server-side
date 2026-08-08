@@ -22,12 +22,15 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const TourPakegeCollection = client.db("Travel_Tour").collection("package");
+    const TourPakegeCollection = client.db("Travel_Tour").collection('package');
     const pakageBookCollection=client.db("Travel_Tour").collection('booking')
     //package Api
     app.get("/package", async (req, res) => {
       const email = req.query.email;
       const query = {};
+      if(email){
+        query.hrEmail = email;
+      }
       const cursor = TourPakegeCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -45,6 +48,20 @@ async function run() {
       const result=await TourPakegeCollection.findOne(query)
       res.send(result)
     })
+
+    app.get('/pakage/booking',async(req,res)=>{
+      const email=req.query.email;
+      const query={hrEmail: email};
+      const pakages=await TourPakegeCollection.find(query).toArray()
+       for(const pakag of pakages){
+        const bookingQuery={pakageId :pakage_id.toString()}
+        const booking_count=await pakageBookCollection.countDocuments(bookingQuery)
+        pakag.booking_count=booking_count
+       }
+       res.send(pakages)
+      
+    })
+
     app.post('/booking',async(req,res)=>{
       const booked=req.body;
       console.log(booked);
@@ -56,14 +73,44 @@ async function run() {
       const email=req.query.email;
 
       const query={
-      applicant:email
+         applicant: email
 
       }
+      
       const result=await pakageBookCollection.find(query).toArray()
+
+      for(const bookings of result){
+         const pakageId=bookings.pakageId
+         const pakageQuery={_id: new ObjectId(pakageId)}
+         const pakage=await TourPakegeCollection.findOne(pakageQuery)
+         bookings.tourName = pakage.tourName;
+         bookings.duration =  pakage.duration;
+         bookings.departureDate = pakage.departureDate
+         bookings.price = pakage.price
+      }
+     
       res.send(result)
     })
     
-
+    app.patch('/booking/:id',async(req,res)=>{
+      const id =req.params.id;
+      const filter={_id:new ObjectId(id)}
+      const updatedDoc={
+        $set:{
+          status:req.body.status
+        }
+      }
+      const result=await pakageBookCollection.updateOne(filter,updatedDoc)
+      res.send(result)
+    })
+    app.get('/booking/package/:pakage_id',async(req,res)=>{
+     const pakage_id=req.params.pakage_id;
+     const query={ pakageId: pakage_id}
+     const result=await pakageBookCollection.find(query).toArray()
+     res.send(result)
+    })
+    
+    
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
