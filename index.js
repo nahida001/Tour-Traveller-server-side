@@ -49,7 +49,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/pakage/booking',async(req,res)=>{
+    app.get('/package/booking',async(req,res)=>{
       const email=req.query.email;
       const query={hrEmail: email};
       const pakages=await TourPakegeCollection.find(query).toArray()
