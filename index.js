@@ -64,7 +64,7 @@ async function run() {
 
     app.post('/booking',async(req,res)=>{
       const booked=req.body;
-      console.log(booked);
+      //console.log(booked);
       const result=await pakageBookCollection.insertOne(booked);
       res.send(result)
     })
