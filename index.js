@@ -120,9 +120,7 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.get("/", (req, res) => {
-  res.send("Travel Tour fresh mind");
-});
+
 
 app.listen(port, () => {
   console.log(`travel tour server is running on port ${port}`);
